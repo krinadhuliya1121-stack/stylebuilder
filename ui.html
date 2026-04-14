@@ -1,0 +1,748 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Design System Generator AI</title>
+  <style>
+    :root {
+      --bg: #09090b;
+      --surface: #18181b;
+      --surface-hover: #27272a;
+      --border: #3f3f46;
+      --text: #f4f4f5;
+      --text-muted: #a1a1aa;
+      --accent: #3b82f6;
+      --accent-hover: #2563eb;
+      --radius: 12px;
+      --ring: rgba(59, 130, 246, 0.5);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      max-width: 420px;
+      /* add container feel */
+      margin: 0 auto;
+      padding: 20px;
+    }
+
+    .header {
+      margin-bottom: 8px;
+    }
+
+    .header h1 {
+      font-size: 20px;
+      font-weight: 600;
+      letter-spacing: -0.02em;
+      background: linear-gradient(135deg, #fff 0%, #a1a1aa 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      margin-bottom: 4px;
+    }
+
+    .header p {
+      font-size: 13px;
+      color: var(--text-muted);
+      line-height: 1.4;
+    }
+
+    .input-group {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    label {
+      font-size: 12px;
+      font-weight: 500;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .color-item {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .color-item label {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--text-muted);
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+    }
+
+    .color-input-layout {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      width: 100%;
+    }
+
+    .color-swatch-wrapper {
+      width: 32px;
+      height: 32px;
+      border-radius: 6px;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      flex-shrink: 0;
+      position: relative;
+      overflow: hidden;
+      cursor: pointer;
+    }
+
+    .color-swatch-wrapper input[type="color"] {
+      position: absolute;
+      top: -20px;
+      left: -20px;
+      width: 80px;
+      height: 80px;
+      cursor: pointer;
+      opacity: 0;
+    }
+
+    .color-hex-input {
+      flex: 1;
+      background-color: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      color: var(--text);
+      font-size: 13px;
+      font-family: 'Inter', monospace;
+      padding: 0 10px;
+      height: 32px;
+      outline: none;
+      width: 100%;
+      transition: all 0.2s ease;
+    }
+
+    .color-hex-input:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 2px var(--ring);
+    }
+
+    select {
+      background-image: url('data:image/svg+xml;utf8,<svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M7 10L12 15L17 10" stroke="%23a1a1aa" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>');
+      background-repeat: no-repeat;
+      background-position: right 8px center;
+      padding-right: 32px;
+    }
+
+    input[type="text"]:focus,
+    select:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px var(--ring);
+      background-color: var(--bg);
+    }
+
+    button {
+      background-color: var(--accent);
+      color: white;
+      border: none;
+      padding: 12px 16px;
+      font-weight: 600;
+      font-size: 14px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-family: inherit;
+      transition: all 0.2s ease;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      margin-top: 40px;
+      box-shadow: 0 4px 12px rgba(59, 130, 246, 0.25);
+      width: 100%;
+
+    }
+
+    button:hover {
+      background-color: var(--accent-hover);
+      transform: translateY(-1px);
+      box-shadow: 0 6px 16px rgba(59, 130, 246, 0.35);
+    }
+
+    button:active {
+      transform: translateY(1px);
+      box-shadow: 0 2px 8px rgba(59, 130, 246, 0.25);
+    }
+
+    button:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    .loader {
+      display: none;
+      width: 16px;
+      height: 16px;
+      border: 2px solid rgba(255, 255, 255, 0.3);
+      border-radius: 50%;
+      border-top-color: white;
+      animation: spin 1s ease-in-out infinite;
+    }
+
+    .font-search-wrapper {
+      position: relative;
+      background-color: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      transition: all 0.2s ease;
+      height: 40px;
+      display: flex;
+      align-items: center;
+      overflow: hidden;
+    }
+
+    .font-search-wrapper:focus-within {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 2px var(--ring);
+      background-color: var(--surface);
+    }
+
+    .font-search-wrapper input[type="text"] {
+      width: 100%;
+      border: none;
+      background: transparent;
+      padding: 10px 40px 10px 36px;
+      box-shadow: none;
+      margin: 0;
+      color: var(--text);
+      font-size: 14px;
+      outline: none;
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      line-height: 1.4;
+    }
+
+    .font-search-wrapper input[type="text"]:focus {
+      border-color: transparent;
+      box-shadow: none;
+      background-color: transparent;
+    }
+
+    .search-icon {
+      position: absolute;
+      left: 12px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--text-muted);
+      pointer-events: none;
+    }
+
+
+    #clear-search {
+      position: absolute;
+      right: 12px;
+      top: 50%;
+      transform: translateY(-50%);
+      opacity: 0.5;
+      cursor: pointer;
+      transition: opacity 0.2s ease;
+    }
+
+    #clear-search:hover {
+      opacity: 1;
+    }
+
+
+    .font-dropdown {
+      position: absolute;
+      top: calc(100% + 6px);
+      left: 0;
+      width: 100%;
+      max-height: 320px;
+      overflow-y: auto;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+      z-index: 1000;
+      display: none;
+    }
+
+    .font-dropdown-header {
+      padding: 8px 12px;
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--text-muted);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      position: sticky;
+      top: 0;
+      background: var(--surface);
+      z-index: 2;
+      cursor: pointer;
+      border-bottom: 1px solid var(--border);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .font-dropdown-header:hover {
+      background: var(--surface-hover);
+    }
+
+    .all-fonts-menu {
+      position: absolute;
+      top: 36px;
+      left: 8px;
+      right: 8px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 6px 0;
+      z-index: 2000;
+      display: none;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    }
+
+    .all-fonts-menu.show {
+      display: block;
+    }
+
+    .menu-item {
+      padding: 6px 12px 6px 32px;
+      font-size: 13px;
+      color: var(--text);
+      cursor: pointer;
+      position: relative;
+      display: flex;
+      align-items: center;
+      min-height: 28px;
+      transition: background 0.15s ease;
+    }
+
+    .menu-item:hover {
+      background: var(--surface-hover);
+      color: var(--text);
+    }
+
+    .menu-item .check-icon {
+      position: absolute;
+      left: 10px;
+    }
+
+    .menu-item:not(.active) .check-icon {
+      display: none;
+    }
+
+    .menu-divider {
+      height: 1px;
+      background: #3f3f46;
+      margin: 4px 0;
+    }
+
+    /* Native-like scrollbar */
+    .font-dropdown::-webkit-scrollbar {
+      width: 6px;
+    }
+
+    .font-dropdown::-webkit-scrollbar-track {
+      background: transparent;
+    }
+
+    .font-dropdown::-webkit-scrollbar-thumb {
+      background: var(--border);
+      border-radius: 3px;
+      border: none;
+    }
+
+    .font-dropdown::-webkit-scrollbar-thumb:hover {
+      background: var(--text-muted);
+    }
+
+    .font-dropdown.show {
+      display: block;
+    }
+
+    .font-option {
+      padding: 8px 16px 8px 36px;
+      cursor: pointer;
+      font-size: 14px;
+      color: var(--text);
+      display: flex;
+      align-items: center;
+      min-height: 36px;
+      transition: background 0.15s ease;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      user-select: none;
+      position: relative;
+      border-bottom: 1px solid transparent;
+    }
+
+    .font-option:hover {
+      background: var(--surface-hover);
+    }
+
+    .font-option.selected {
+      background: rgba(59, 130, 246, 0.1);
+    }
+
+    .font-option.selected::before {
+      content: '';
+      position: absolute;
+      left: 14px;
+      width: 12px;
+      height: 12px;
+      background-image: url('data:image/svg+xml;utf8,<svg width="12" height="12" viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M11.5 3.5L5.25 10.5L2.5 7.5" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>');
+      background-repeat: no-repeat;
+      background-position: center;
+    }
+
+    #color-inputs {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      row-gap: 30px;
+      column-gap: 30px;
+      margin-top: 60px;
+    }
+
+    .font-filter-wrapper {
+      position: relative;
+    }
+
+    .font-filter-selected {
+      background-color: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 10px 12px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      transition: all 0.2s ease;
+      height: 40px;
+      box-sizing: border-box;
+    }
+
+    .font-filter-selected:hover {
+      background-color: var(--surface-hover);
+      border-color: var(--accent);
+    }
+
+    .font-filter-selected:focus {
+      outline: none;
+      border-color: var(--accent);
+      box-shadow: 0 0 0 2px var(--ring);
+    }
+
+    #filter-display {
+      color: var(--text);
+      font-size: 14px;
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    }
+
+    .font-filter-dropdown {
+      position: absolute;
+      top: calc(100% + 6px);
+      left: 0;
+      width: 100%;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+      z-index: 1000;
+      display: none;
+      padding: 6px 0;
+    }
+
+    .font-filter-dropdown.show {
+      display: block;
+    }
+  </style>
+</head>
+
+<body>
+
+  <div class="input-group" style="position: relative; margin-bottom: 12px; z-index: 10;">
+    <label for="font-family">Font Family</label>
+    <div class="font-search-wrapper" id="font-search-wrapper">
+      <svg class="search-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+        stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="11" cy="11" r="8"></circle>
+        <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+      </svg>
+      <input type="text" id="font-family" value="Inter" placeholder="Search fonts..." spellcheck="false"
+        autocomplete="off">
+      <svg id="clear-search" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+        stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <line x1="18" y1="6" x2="6" y2="18"></line>
+        <line x1="6" y1="6" x2="18" y2="18"></line>
+      </svg>
+    </div>
+
+    <div id="font-dropdown" class="font-dropdown">
+      <div id="font-list-container"></div>
+    </div>
+  </div>
+
+  <div class="input-group" style="position: relative; margin-bottom: 12px; z-index: 9;">
+    <label>Font Filter</label>
+    <div class="font-filter-wrapper" id="font-filter-wrapper">
+      <div class="font-filter-selected" id="font-filter-selected">
+        <span id="filter-display">All fonts</span>
+        <svg class="dropdown-arrow" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+          stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="6 9 12 15 18 9"></polyline>
+        </svg>
+      </div>
+    </div>
+
+    <div id="font-filter-dropdown" class="font-filter-dropdown">
+      <div class="menu-item active">
+        <svg width="12" height="12" viewBox="0 0 14 14" fill="none" class="check-icon">
+          <path d="M11.5 3.5L5.25 10.5L2.5 7.5" stroke="white" stroke-width="2" stroke-linecap="round"
+            stroke-linejoin="round" />
+        </svg>
+        All fonts
+      </div>
+      <div class="menu-item">
+        <svg width="12" height="12" viewBox="0 0 14 14" fill="none" class="check-icon">
+          <path d="M11.5 3.5L5.25 10.5L2.5 7.5" stroke="white" stroke-width="2" stroke-linecap="round"
+            stroke-linejoin="round" />
+        </svg>In this file
+      </div>
+      <div class="menu-divider"></div>
+      <div class="menu-item">
+        <svg width="12" height="12" viewBox="0 0 14 14" fill="none" class="check-icon">
+          <path d="M11.5 3.5L5.25 10.5L2.5 7.5" stroke="white" stroke-width="2" stroke-linecap="round"
+            stroke-linejoin="round" />
+        </svg>Popular fonts
+      </div>
+      <div class="menu-item">
+        <svg width="12" height="12" viewBox="0 0 14 14" fill="none" class="check-icon">
+          <path d="M11.5 3.5L5.25 10.5L2.5 7.5" stroke="white" stroke-width="2" stroke-linecap="round"
+            stroke-linejoin="round" />
+        </svg>Google fonts
+      </div>
+      <div class="menu-item">
+        <svg width="12" height="12" viewBox="0 0 14 14" fill="none" class="check-icon">
+          <path d="M11.5 3.5L5.25 10.5L2.5 7.5" stroke="white" stroke-width="2" stroke-linecap="round"
+            stroke-linejoin="round" />
+        </svg>Variable fonts
+      </div>
+      <div class="menu-divider"></div>
+      <div class="menu-item">
+        <svg width="12" height="12" viewBox="0 0 14 14" fill="none" class="check-icon">
+          <path d="M11.5 3.5L5.25 10.5L2.5 7.5" stroke="white" stroke-width="2" stroke-linecap="round"
+            stroke-linejoin="round" />
+        </svg>Installed by you
+      </div>
+    </div>
+  </div>
+
+  <div class="section-title"
+    style="font-size: 11px; font-weight: 700; color: var(--text-muted); text-transform: uppercase;"></div>
+  <div id="color-inputs" style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 4px;">
+    <!-- Color inputs will be injected here -->
+  </div>
+
+  <button id="generate-btn">
+    <span class="btn-text">Create System</span>
+    <div class="loader" id="loader"></div>
+  </button>
+
+  <script>
+    window.addEventListener('DOMContentLoaded', () => {
+      // Global Elements
+      const generateBtn = document.getElementById('generate-btn');
+      const fontInput = document.getElementById('font-family');
+      const loader = document.getElementById('loader');
+      const fontDropdown = document.getElementById('font-dropdown');
+      const fontListContainer = document.getElementById('font-list-container');
+      const clearSearch = document.getElementById('clear-search');
+      const fontFilterWrapper = document.getElementById('font-filter-wrapper');
+      const fontFilterDropdown = document.getElementById('font-filter-dropdown');
+      const filterDisplay = document.getElementById('filter-display');
+      const fontFilterSelected = document.getElementById('font-filter-selected');
+      const colorContainer = document.getElementById('color-inputs');
+
+      // State
+      const colorDefinitions = [
+        { name: "Primary", default: "#3b82f6" },
+        { name: "Secondary", default: "#8b5cf6" },
+        { name: "Success", default: "#10b981" },
+        { name: "Info", default: "#06b6d4" },
+        { name: "Warning", default: "#f59e0b" },
+        { name: "Danger", default: "#ef4444" },
+        { name: "Gray", default: "#6b7280" },
+      ];
+      const colorValues = {};
+      let availableFonts = ["Inter", "Roboto", "Poppins", "Lato", "Montserrat", "Open Sans", "Nunito", "Raleway", "Oswald", "Outfit"];
+      const loadedFonts = new Set(["Inter"]);
+
+      // Initialize Color Inputs
+      colorDefinitions.forEach(c => {
+        colorValues[c.name] = c.default;
+        const group = document.createElement('div');
+        group.className = 'color-item';
+        group.innerHTML = `
+          <label>${c.name}</label>
+          <div class="color-input-layout">
+            <div class="color-swatch-wrapper" style="background-color: ${c.default}">
+              <input type="color" value="${c.default}">
+            </div>
+            <input type="text" class="color-hex-input" value="${c.default}" spellcheck="false" maxlength="7">
+          </div>
+        `;
+        const picker = group.querySelector('input[type="color"]');
+        const text = group.querySelector('input[type="text"]');
+        const preview = group.querySelector('.color-swatch-wrapper');
+        
+        picker.addEventListener('input', (e) => {
+          text.value = e.target.value.toUpperCase();
+          preview.style.backgroundColor = e.target.value;
+          colorValues[c.name] = e.target.value;
+        });
+        text.addEventListener('input', (e) => {
+          let val = e.target.value;
+          if (!val.startsWith('#')) val = '#' + val;
+          if (/^#[0-9A-F]{6}$/i.test(val)) {
+            picker.value = val;
+            preview.style.backgroundColor = val;
+            colorValues[c.name] = val;
+          }
+        });
+        colorContainer.appendChild(group);
+      });
+
+      // Font Dropdown Logic
+      const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+          if (entry.isIntersecting) {
+            const fontName = entry.target.dataset.font;
+            if (fontName && !loadedFonts.has(fontName)) {
+              loadedFonts.add(fontName);
+              const link = document.createElement('link');
+              link.rel = 'stylesheet';
+              link.href = `https://fonts.googleapis.com/css2?family=${fontName.replace(/ /g, '+')}&text=${encodeURIComponent(fontName)}`;
+              document.head.appendChild(link);
+            }
+            observer.unobserve(entry.target);
+          }
+        });
+      }, { root: fontDropdown, rootMargin: '100px' });
+
+      function renderDropdown(query = '') {
+        observer.disconnect();
+        fontListContainer.innerHTML = '';
+        const q = query.trim().toLowerCase();
+        const filtered = availableFonts.filter(f => f.toLowerCase().includes(q)).slice(0, 800);
+        const currentFont = fontInput.value.trim().toLowerCase();
+
+        if (filtered.length === 0) {
+          fontListContainer.innerHTML = '<div class="font-option" style="opacity: 0.5; cursor: default;">No matching fonts</div>';
+        } else {
+          filtered.forEach(fontName => {
+            const opt = document.createElement('div');
+            opt.className = 'font-option';
+            if (fontName.toLowerCase() === currentFont) opt.classList.add('selected');
+            opt.textContent = fontName;
+            opt.dataset.font = fontName;
+            opt.style.fontFamily = `"${fontName}", sans-serif`;
+            opt.onclick = (e) => {
+              e.stopPropagation();
+              fontInput.value = fontName;
+              clearSearch.style.display = 'block';
+              closeAll();
+            };
+            fontListContainer.appendChild(opt);
+            observer.observe(opt);
+          });
+        }
+        fontDropdown.classList.add('show');
+      }
+
+      function closeAll() {
+        fontDropdown.classList.remove('show');
+        fontFilterDropdown.classList.remove('show');
+      }
+
+      // Event Listeners
+      generateBtn.onclick = () => {
+        const btnTextEl = generateBtn.querySelector('.btn-text');
+        if (btnTextEl) btnTextEl.textContent = "Generating...";
+        loader.style.display = "block";
+        generateBtn.disabled = true;
+        parent.postMessage({
+          pluginMessage: {
+            type: 'generate-system',
+            colors: colorValues,
+            font: fontInput.value.trim() || 'Inter'
+          }
+        }, '*');
+      };
+
+      fontInput.onfocus = () => {
+        clearSearch.style.display = fontInput.value ? 'block' : 'none';
+        renderDropdown(fontInput.value);
+      };
+      fontInput.oninput = (e) => {
+        renderDropdown(e.target.value);
+        clearSearch.style.display = e.target.value ? 'block' : 'none';
+      };
+      clearSearch.onclick = (e) => {
+        e.stopPropagation();
+        fontInput.value = '';
+        clearSearch.style.display = 'none';
+        renderDropdown('');
+        fontInput.focus();
+      };
+
+      fontFilterSelected.onclick = (e) => {
+        e.stopPropagation();
+        const isOpen = fontFilterDropdown.classList.contains('show');
+        closeAll();
+        if (!isOpen) fontFilterDropdown.classList.add('show');
+      };
+
+      document.querySelectorAll('#font-filter-dropdown .menu-item').forEach(item => {
+        item.onclick = (e) => {
+          e.stopPropagation();
+          document.querySelectorAll('#font-filter-dropdown .menu-item').forEach(i => i.classList.remove('active'));
+          item.classList.add('active');
+          filterDisplay.textContent = item.textContent.trim();
+          closeAll();
+        };
+      });
+
+      document.onclick = (e) => {
+        if (!e.target.closest('.input-group')) closeAll();
+      };
+
+      // Messaging
+      window.onmessage = (event) => {
+        const msg = event.data.pluginMessage;
+        if (!msg) return;
+        if (msg.type === 'font-data') {
+          availableFonts = Object.keys(msg.fontMap).sort();
+        } else if (msg.type === 'done' || msg.type === 'error') {
+          if (msg.type === 'error') alert(msg.message);
+          const btnTextEl = generateBtn.querySelector('.btn-text');
+          if (btnTextEl) btnTextEl.textContent = msg.type === 'done' ? "System Generated!" : "Create System";
+          loader.style.display = "none";
+          setTimeout(() => {
+            if (btnTextEl) btnTextEl.textContent = "Create System";
+            generateBtn.disabled = false;
+          }, 2000);
+        }
+      };
+
+      // Signal UI is ready to receive data
+      parent.postMessage({ pluginMessage: { type: 'ui-ready' } }, '*');
+    });
+  </script>
+</body>
+
+</html>

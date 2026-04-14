@@ -1,0 +1,638 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Design System Generator AI</title>
+  <style>
+    :root {
+      --bg: #09090b;
+      --surface: #18181b;
+      --surface-hover: #27272a;
+      --border: #3f3f46;
+      --text: #f4f4f5;
+      --text-muted: #a1a1aa;
+      --accent: #3b82f6;
+      --accent-hover: #2563eb;
+      --radius: 12px;
+      --ring: rgba(59, 130, 246, 0.5);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      background-color: var(--bg);
+      color: var(--text);
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+      padding: 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+      height: 100%;
+    }
+
+    .header {
+      margin-bottom: 8px;
+    }
+
+    .header h1 {
+      font-size: 20px;
+      font-weight: 600;
+      letter-spacing: -0.02em;
+      background: linear-gradient(135deg, #fff 0%, #a1a1aa 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      margin-bottom: 4px;
+    }
+
+    .header p {
+      font-size: 13px;
+      color: var(--text-muted);
+      line-height: 1.4;
+    }
+
+    .input-group {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    label {
+      font-size: 12px;
+      font-weight: 500;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .color-input-wrapper {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .color-preview {
+      width: 36px;
+      height: 36px;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      background-color: #3b82f6;
+      /* default */
+      flex-shrink: 0;
+      cursor: pointer;
+      overflow: hidden;
+      position: relative;
+    }
+
+    .color-preview input[type="color"] {
+      position: absolute;
+      top: -10px;
+      left: -10px;
+      width: 60px;
+      height: 60px;
+      cursor: pointer;
+      opacity: 0;
+    }
+
+    input[type="text"],
+    select {
+      flex: 1;
+      background-color: var(--surface);
+      border: 1px solid var(--border);
+      color: var(--text);
+      font-family: inherit;
+      font-size: 14px;
+      padding: 10px 12px;
+      border-radius: 8px;
+      transition: all 0.2s ease;
+      outline: none;
+      width: 100%;
+      appearance: none;
+    }
+
+    select {
+      background-image: url('data:image/svg+xml;utf8,<svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M7 10L12 15L17 10" stroke="%23a1a1aa" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>');
+      background-repeat: no-repeat;
+      background-position: right 8px center;
+      padding-right: 32px;
+    }
+
+    input[type="text"]:focus,
+    select:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px var(--ring);
+      background-color: var(--bg);
+    }
+
+    button {
+      background-color: var(--accent);
+      color: white;
+      border: none;
+      padding: 12px 16px;
+      font-weight: 600;
+      font-size: 14px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-family: inherit;
+      transition: all 0.2s ease;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      margin-top: 12px;
+      box-shadow: 0 4px 12px rgba(59, 130, 246, 0.25);
+    }
+
+    button:hover {
+      background-color: var(--accent-hover);
+      transform: translateY(-1px);
+      box-shadow: 0 6px 16px rgba(59, 130, 246, 0.35);
+    }
+
+    button:active {
+      transform: translateY(1px);
+      box-shadow: 0 2px 8px rgba(59, 130, 246, 0.25);
+    }
+
+    button:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    .loader {
+      display: none;
+      width: 16px;
+      height: 16px;
+      border: 2px solid rgba(255, 255, 255, 0.3);
+      border-radius: 50%;
+      border-top-color: white;
+      animation: spin 1s ease-in-out infinite;
+    }
+
+    @keyframes spin {
+      to {
+        transform: rotate(360deg);
+      }
+
+      @keyframes spin {
+        to {
+          transform: rotate(360deg);
+        }
+      }
+
+      .font-search-wrapper {
+        position: relative;
+        /* ADD THIS */
+        display: flex;
+        align-items: center;
+        background-color: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        padding: 0 12px;
+        transition: all 0.2s ease;
+      }
+
+      .font-search-wrapper:focus-within {
+        border-color: var(--accent);
+        box-shadow: 0 0 0 3px var(--ring);
+        background-color: var(--bg);
+      }
+
+      .font-search-wrapper input[type="text"] {
+        width: 100%;
+        border: none;
+        background: transparent;
+        padding: 10px 70px 10px 36px;
+        /* balanced spacing */
+        margin: 0;
+      }
+
+      .font-search-wrapper input[type="text"]:focus {
+        border-color: transparent;
+        box-shadow: none;
+        background-color: transparent;
+      }
+
+      .search-icon {
+        position: absolute;
+        left: 12px;
+        top: 50%;
+        transform: translateY(-50%);
+        opacity: 0.5;
+        pointer-events: none;
+      }
+
+      #clear-search {
+        position: absolute;
+        right: 36px;
+        top: 50%;
+        transform: translateY(-50%);
+        opacity: 0.5;
+        cursor: pointer;
+        display: none;
+        z-index: 2;
+      }
+
+      #clear-search:hover {
+        opacity: 1;
+      }
+
+      .main-dropdown-arrow {
+        position: absolute;
+        right: 12px;
+        top: 50%;
+        transform: translateY(-50%);
+        cursor: pointer;
+        opacity: 0.5;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 20px;
+        height: 20px;
+        z-index: 2;
+      }
+
+      .main-dropdown-arrow:hover {
+        opacity: 1;
+      }
+
+      .font-dropdown {
+        position: absolute;
+        top: calc(100% + 4px);
+        left: 0;
+        right: 0;
+        background: #2b2b2b;
+        border: 1px solid #3f3f46;
+        border-radius: 8px;
+        max-height: 380px;
+        overflow-y: auto;
+        z-index: 1000;
+        display: none;
+        box-shadow: 0 12px 32px rgba(0, 0, 0, 0.7);
+      }
+
+      .font-dropdown-header {
+        padding: 10px 16px 6px 16px;
+        font-size: 11px;
+        font-weight: 600;
+        color: #a1a1aa;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        position: sticky;
+        top: 0;
+        background: #2b2b2b;
+        z-index: 2;
+      }
+
+      /* Native-like scrollbar */
+      .font-dropdown::-webkit-scrollbar {
+        width: 8px;
+      }
+
+      .font-dropdown::-webkit-scrollbar-track {
+        background: transparent;
+      }
+
+      .font-dropdown::-webkit-scrollbar-thumb {
+        background: #4b4b4b;
+        border-radius: 10px;
+        border: 2px solid #2b2b2b;
+      }
+
+      .font-dropdown::-webkit-scrollbar-thumb:hover {
+        background: #6b6b6b;
+      }
+
+      .font-dropdown.show {
+        display: block;
+      }
+
+      .font-option {
+        padding: 8px 16px;
+        cursor: pointer;
+        font-size: 15px;
+        color: var(--text);
+        display: flex;
+        align-items: center;
+        min-height: 40px;
+        transition: background 0.1s;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        user-select: none;
+      }
+
+      .font-option:hover {
+        background: #444;
+      }
+
+      .font-option.selected {
+        color: #3b82f6;
+        background: rgba(59, 130, 246, 0.1);
+      }
+  </style>
+</head>
+
+<body>
+
+  <div id="preview-banner"
+    style="display: none; background: #3b82f6; color: white; padding: 10px; font-size: 12px; font-weight: 600; text-align: center; border-radius: 8px; margin-bottom: 20px;">
+    🚀 PREVIEW MODE: You can explore the UI here. Deployment to Figma is required for layer generation.
+  </div>
+
+  <div class="input-group" style="position: relative; margin-bottom: 12px; z-index: 10;">
+    <label for="font-family">Font Family</label>
+    <div class="font-search-wrapper" id="font-search-wrapper">
+      <svg class="search-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+        stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="11" cy="11" r="8"></circle>
+        <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+      </svg>
+      <input type="text" id="font-family" value="Inter" placeholder="Search fonts..." spellcheck="false"
+        autocomplete="off">
+      <svg id="clear-search" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+        stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <line x1="18" y1="6" x2="6" y2="18"></line>
+        <line x1="6" y1="6" x2="18" y2="18"></line>
+      </svg>
+      <div id="main-dropdown-arrow" class="main-dropdown-arrow">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+          stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="6 9 12 15 18 9"></polyline>
+        </svg>
+      </div>
+    </div>
+
+    <div id="font-dropdown" class="font-dropdown">
+      <div class="font-dropdown-header">
+        <span>All fonts</span>
+        <svg width="10" height="6" viewBox="0 0 10 6" fill="none" stroke="currentColor" stroke-width="1.5"
+          stroke-linecap="round" stroke-linejoin="round">
+          <path d="M1 1L5 5L9 1" />
+        </svg>
+      </div>
+      <div id="font-list-container"></div>
+    </div>
+  </div>
+
+  <div class="section-title"
+    style="font-size: 11px; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">System Colors</div>
+  <div id="color-inputs" style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 4px;">
+    <!-- Color inputs will be injected here -->
+  </div>
+
+  <button id="generate-btn">
+    <span class="btn-text">Create System</span>
+    <div class="loader" id="loader"></div>
+  </button>
+
+  <script>
+    const isFigma = typeof parent !== 'undefined' && parent.postMessage && window.name.includes('figma');
+
+    // Show banner if in browser/vercel
+    if (!isFigma) {
+      document.getElementById('preview-banner').style.display = 'block';
+    }
+
+    const colorDefinitions = [
+      { name: "Primary", default: "#3b82f6" },
+      { name: "Secondary", default: "#8b5cf6" },
+      { name: "Success", default: "#10b981" },
+      { name: "Info", default: "#06b6d4" },
+      { name: "Warning", default: "#f59e0b" },
+      { name: "Danger", default: "#ef4444" },
+      { name: "Gray", default: "#6b7280" },
+    ];
+
+    const colorContainer = document.getElementById('color-inputs');
+    const colorValues = {};
+
+    colorDefinitions.forEach(c => {
+      colorValues[c.name] = c.default;
+
+      const group = document.createElement('div');
+      group.className = 'input-group';
+
+      const label = document.createElement('label');
+      label.textContent = c.name;
+
+      const wrapper = document.createElement('div');
+      wrapper.className = 'color-input-wrapper';
+
+      const preview = document.createElement('div');
+      preview.className = 'color-preview';
+      preview.style.backgroundColor = c.default;
+
+      const picker = document.createElement('input');
+      picker.type = 'color';
+      picker.value = c.default;
+      preview.appendChild(picker);
+
+      const text = document.createElement('input');
+      text.type = 'text';
+      text.value = c.default;
+      text.spellcheck = false;
+      text.maxLength = 7;
+      text.style.width = '70px';
+
+      picker.addEventListener('input', (e) => {
+        text.value = e.target.value.toUpperCase();
+        preview.style.backgroundColor = e.target.value;
+        colorValues[c.name] = e.target.value;
+      });
+
+      text.addEventListener('input', (e) => {
+        let val = e.target.value;
+        if (!val.startsWith('#')) val = '#' + val;
+        if (/^#[0-9A-F]{6}$/i.test(val)) {
+          picker.value = val;
+          preview.style.backgroundColor = val;
+          colorValues[c.name] = val;
+        }
+      });
+
+      wrapper.appendChild(preview);
+      wrapper.appendChild(text);
+      group.appendChild(label);
+      group.appendChild(wrapper);
+      colorContainer.appendChild(group);
+    });
+
+    const generateBtn = document.getElementById('generate-btn');
+    const fontInput = document.getElementById('font-family');
+    const loader = document.getElementById('loader');
+
+    generateBtn.onclick = () => {
+      // Show loader
+      const btnTextEl = generateBtn.querySelector('.btn-text');
+      if (btnTextEl) btnTextEl.textContent = "Generating...";
+      loader.style.display = "block";
+      generateBtn.disabled = true;
+
+      if (!isFigma) {
+        // Mock behavior for Vercel demo
+        setTimeout(() => {
+          if (btnTextEl) btnTextEl.textContent = "Success (Browser Mock)";
+          loader.style.display = "none";
+          alert("This is a live preview! To generate actual Figma tokens, install this plugin in Figma.");
+          setTimeout(() => {
+            if (btnTextEl) btnTextEl.textContent = "Create System";
+            generateBtn.disabled = false;
+          }, 2000);
+        }, 1500);
+        return;
+      }
+
+      parent.postMessage({
+        pluginMessage: {
+          type: 'generate-system',
+          colors: colorValues,
+          font: fontInput.value.trim() || 'Inter'
+        }
+      }, '*');
+    };
+
+    const fontDropdown = document.getElementById('font-dropdown');
+    const fontListContainer = document.getElementById('font-list-container');
+    const clearSearch = document.getElementById('clear-search');
+    let availableFonts = ["Inter", "Roboto", "Poppins", "Lato", "Montserrat", "Open Sans", "Nunito", "Raleway", "Oswald", "Outfit"];
+    let fontMap = {};
+
+    const loadedFonts = new Set(["Inter"]);
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          const fontName = entry.target.dataset.font;
+          if (fontName && !loadedFonts.has(fontName)) {
+            loadedFonts.add(fontName);
+            const link = document.createElement('link');
+            link.rel = 'stylesheet';
+            const familyName = fontName.replace(/ /g, '+');
+            link.href = `https://fonts.googleapis.com/css2?family=${familyName}&text=${encodeURIComponent(fontName)}`;
+            link.onerror = () => { /* gracefully ignore failure */ };
+            document.head.appendChild(link);
+          }
+          observer.unobserve(entry.target);
+        }
+      });
+    }, { root: fontDropdown, rootMargin: '100px' });
+
+    function closeAll() {
+      fontDropdown.classList.remove('show');
+    }
+
+    const mainArrow = document.getElementById('main-dropdown-arrow');
+    mainArrow.addEventListener('click', (e) => {
+      e.stopPropagation();
+      fontDropdown.classList.toggle('show');
+      if (fontDropdown.classList.contains('show')) {
+        renderDropdown(fontInput.value);
+      }
+    });
+
+    fontInput.addEventListener('focus', () => {
+      clearSearch.style.display = fontInput.value ? 'block' : 'none';
+    });
+
+    fontInput.addEventListener('click', (e) => {
+      e.stopPropagation();
+    });
+
+    fontInput.addEventListener('input', (e) => {
+      renderDropdown(e.target.value);
+      clearSearch.style.display = e.target.value ? 'block' : 'none';
+    });
+
+    clearSearch.addEventListener('click', (e) => {
+      e.stopPropagation();
+      fontInput.value = '';
+      clearSearch.style.display = 'none';
+      renderDropdown('');
+      fontInput.focus();
+    });
+
+    document.addEventListener('click', (e) => {
+      if (!e.target.closest('.input-group')) {
+        closeAll();
+      }
+    });
+
+    function renderDropdown(query = '') {
+      observer.disconnect();
+      fontListContainer.innerHTML = '';
+
+      const q = query.trim().toLowerCase();
+      // Render multiple items, observer handles lazy loading fonts
+      const filtered = availableFonts.filter(f => f.toLowerCase().includes(q)).slice(0, 800);
+      const currentFont = fontInput.value.trim().toLowerCase();
+
+      if (filtered.length === 0) {
+        const dummy = document.createElement('div');
+        dummy.className = 'font-option';
+        dummy.textContent = 'No matching fonts';
+        dummy.style.opacity = '0.5';
+        dummy.style.cursor = 'default';
+        fontListContainer.appendChild(dummy);
+      } else {
+        filtered.forEach(fontName => {
+          const opt = document.createElement('div');
+          opt.className = 'font-option';
+          if (fontName.toLowerCase() === currentFont) opt.classList.add('selected');
+
+          opt.textContent = fontName;
+          opt.dataset.font = fontName;
+          opt.style.fontFamily = `"${fontName}", sans-serif`;
+
+          opt.onclick = (e) => {
+            e.stopPropagation();
+            fontInput.value = fontName;
+            clearSearch.style.display = 'block';
+            closeAll();
+          };
+          fontListContainer.appendChild(opt);
+          observer.observe(opt);
+        });
+      }
+      fontDropdown.classList.add('show');
+    }
+
+    // Request font data as soon as script runs if in Figma
+    if (isFigma) {
+      parent.postMessage({ pluginMessage: { type: 'request-font-data' } }, '*');
+    } else {
+      // Provide some dummy fonts for the Vercel demo
+      availableFonts = ["Inter", "Roboto", "Poppins", "Playfair Display", "Manrope", "Montserrat", "Outfit"].sort();
+    }
+
+    window.onmessage = (event) => {
+      const msg = event.data.pluginMessage;
+      if (msg.type === 'font-data') {
+        availableFonts = Object.keys(msg.fontMap).sort();
+        return;
+      }
+      if (msg.type === 'done') {
+        const btnTextEl = generateBtn.querySelector('.btn-text');
+        if (btnTextEl) btnTextEl.textContent = "System Generated!";
+        loader.style.display = "none";
+        setTimeout(() => {
+          if (generateBtn.querySelector('.btn-text')) generateBtn.querySelector('.btn-text').textContent = "Create System";
+          generateBtn.disabled = false;
+        }, 2000);
+      } else if (msg.type === 'error') {
+        alert(msg.message);
+        if (generateBtn.querySelector('.btn-text')) generateBtn.querySelector('.btn-text').textContent = "Create System";
+        loader.style.display = "none";
+        generateBtn.disabled = false;
+      }
+    };
+  </script>
+</body>
+
+</html>
