@@ -94,10 +94,10 @@ function generateColorScale(baseHex: string) {
 
 figma.ui.onmessage = async (msg) => {
     if (msg.type === 'generate-system') {
-        const { colors, font } = msg;
+        const { colors, includeNeutral, font, allCategories } = msg;
 
         try {
-            await runGenerator(colors, font);
+            await runGenerator(colors, includeNeutral, font, allCategories);
             figma.ui.postMessage({ type: 'done' });
         } catch (err: any) {
             figma.ui.postMessage({ type: 'error', message: err.message || 'An error occurred' });
@@ -107,17 +107,19 @@ figma.ui.onmessage = async (msg) => {
     }
 };
 
-async function runGenerator(colors: Record<string, string>, font: string) {
+async function runGenerator(colors: Record<string, string>, includeNeutral: boolean, font: string, allCategories: string[] = []) {
     // 1. Create color scales
     const allScales: Record<string, Record<string | number, RGB>> = {};
     for (const [name, hex] of Object.entries(colors)) {
         allScales[name] = generateColorScale(hex);
     }
 
-    allScales["Neutral"] = {
-        "White": { r: 1, g: 1, b: 1 },
-        "Black": { r: 0, g: 0, b: 0 }
-    };
+    if (includeNeutral) {
+        allScales["Neutral"] = {
+            "White": { r: 1, g: 1, b: 1 },
+            "Black": { r: 0, g: 0, b: 0 }
+        };
+    }
     
     // Create Local Collection
     let varCollection = figma.variables.getLocalVariableCollections().find(c => c.name === "Design System");
@@ -125,6 +127,30 @@ async function runGenerator(colors: Record<string, string>, font: string) {
         varCollection = figma.variables.createVariableCollection("Design System");
     }
     const modeId = varCollection.modes[0].modeId;
+
+    // Cleanup: Remove styles and variables for categories that are NOT selected
+    const categories = allCategories.length > 0 ? allCategories : ["Primary", "Secondary", "Tertiary", "Success", "Info", "Warning", "Danger", "Gray", "Others", "Neutral"];
+    const selectedCategories = Object.keys(allScales);
+    const unselectedCategories = categories.filter(c => !selectedCategories.includes(c));
+
+    // Remove unselected styles
+    figma.getLocalPaintStyles().forEach(style => {
+        const styleCategory = style.name.split('/')[0].trim();
+        // Check if the style starts with one of our tracked categories but is NOT selected
+        if (unselectedCategories.includes(styleCategory)) {
+            style.remove();
+        }
+    });
+
+    // Remove unselected variables
+    figma.variables.getLocalVariables().forEach(v => {
+        if (v.variableCollectionId === varCollection?.id) {
+            const varCategory = v.name.split('/')[0].trim();
+            if (unselectedCategories.includes(varCategory)) {
+                v.remove();
+            }
+        }
+    });
 
     // Save colors as styles and variables
     const savedVariables: Record<string, Record<string, Variable>> = {};

@@ -96,9 +96,9 @@ figma.ui.onmessage = async (msg) => {
     if (msg.type === 'ui-ready') {
         await sendFontData();
     } else if (msg.type === 'generate-system') {
-        const { colors, font } = msg;
+        const { colors, includeNeutral, font, allCategories } = msg;
         try {
-            await runGenerator(colors, font);
+            await runGenerator(colors, includeNeutral, font, allCategories);
             figma.ui.postMessage({ type: 'done' });
         } catch (err) {
             figma.ui.postMessage({ type: 'error', message: err.message || 'An error occurred' });
@@ -108,17 +108,20 @@ figma.ui.onmessage = async (msg) => {
     }
 };
 
-async function runGenerator(colors, font) {
+async function runGenerator(colors, includeNeutral, font, allCategories) {
+    if (!allCategories) allCategories = [];
     // 1. Create color scales
     const allScales = {};
     for (const [name, hex] of Object.entries(colors)) {
         allScales[name] = generateColorScale(hex);
     }
 
-    allScales["Neutral"] = {
-        "White": { r: 1, g: 1, b: 1 },
-        "Black": { r: 0, g: 0, b: 0 }
-    };
+    if (includeNeutral) {
+        allScales["Neutral"] = {
+            "White": { r: 1, g: 1, b: 1 },
+            "Black": { r: 0, g: 0, b: 0 }
+        };
+    }
 
     // Create Local Collection
     let varCollection = figma.variables.getLocalVariableCollections().find(c => c.name === "Design System");
@@ -127,27 +130,55 @@ async function runGenerator(colors, font) {
     }
     const modeId = varCollection.modes[0].modeId;
 
+    // Cleanup: Remove styles and variables for categories that are NOT selected
+    const categories = allCategories.length > 0 ? allCategories : ["Primary", "Secondary", "Tertiary", "Success", "Info", "Warning", "Danger", "Gray", "Others", "Neutral"];
+    const selectedCategories = Object.keys(allScales);
+    const unselectedCategories = categories.filter(c => !selectedCategories.includes(c));
+
+    // Cache existing styles and variables for O(1) lookup
+    const existingStyles = new Map(figma.getLocalPaintStyles().map(s => [s.name, s]));
+    const existingVars = new Map(figma.variables.getLocalVariables().filter(v => v.variableCollectionId === varCollection.id).map(v => [v.name, v]));
+
+    // Remove unselected styles
+    existingStyles.forEach((style, name) => {
+        const styleCategory = name.split('/')[0].trim();
+        if (unselectedCategories.includes(styleCategory)) {
+            style.remove();
+            existingStyles.delete(name);
+        }
+    });
+
+    // Remove unselected variables
+    existingVars.forEach((v, name) => {
+        const varCategory = name.split('/')[0].trim();
+        if (unselectedCategories.includes(varCategory)) {
+            v.remove();
+            existingVars.delete(name);
+        }
+    });
+
     // Save colors as styles and variables
     const savedVariables = {};
 
     for (const [name, scale] of Object.entries(allScales)) {
         savedVariables[name] = {};
         for (const [shade, rgb] of Object.entries(scale)) {
+            const styleName = `${name}/${shade}`;
             // Create Style
-            let paintStyle = figma.getLocalPaintStyles().find(s => s.name === `${name}/${shade}`);
+            let paintStyle = existingStyles.get(styleName);
             if (!paintStyle) {
                 paintStyle = figma.createPaintStyle();
-                paintStyle.name = `${name}/${shade}`;
+                paintStyle.name = styleName;
             }
             paintStyle.paints = [{ type: 'SOLID', color: rgb }];
 
             // Create Variable
-            let colorVar = figma.variables.getLocalVariables().find(v => v.name === `${name}/${shade}` && v.variableCollectionId === varCollection.id);
+            let colorVar = existingVars.get(styleName);
             if (!colorVar) {
-                colorVar = figma.variables.createVariable(`${name}/${shade}`, varCollection.id, 'COLOR');
+                colorVar = figma.variables.createVariable(styleName, varCollection.id, 'COLOR');
             }
             colorVar.setValueForMode(modeId, { r: rgb.r, g: rgb.g, b: rgb.b, a: 1 });
-
+            
             savedVariables[name][shade] = colorVar;
         }
     }

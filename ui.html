@@ -548,6 +548,7 @@
     <!-- Color inputs will be injected here -->
   </div>
 
+
   <button id="generate-btn">
     <span class="btn-text">Create System</span>
     <div class="loader" id="loader"></div>
@@ -570,13 +571,16 @@
 
       // State
       const colorDefinitions = [
-        { name: "Primary", default: "#3b82f6" },
-        { name: "Secondary", default: "#8b5cf6" },
-        { name: "Success", default: "#10b981" },
-        { name: "Info", default: "#06b6d4" },
-        { name: "Warning", default: "#f59e0b" },
-        { name: "Danger", default: "#ef4444" },
-        { name: "Gray", default: "#6b7280" },
+        { name: "Primary", default: "#3b82f6", checked: true },
+        { name: "Secondary", default: "#8b5cf6", checked: false },
+        { name: "Tertiary", default: "#ec4899", checked: false },
+        { name: "Success", default: "#10b981", checked: false },
+        { name: "Info", default: "#06b6d4", checked: false },
+        { name: "Warning", default: "#f59e0b", checked: false },
+        { name: "Danger", default: "#ef4444", checked: false },
+        { name: "Gray", default: "#6b7280", checked: true },
+        // { name: "Others", default: "#14b8a6", checked: false },
+        { name: "Neutral", default: "#000000", checked: true },
       ];
       const colorValues = {};
       let availableFonts = ["Inter", "Roboto", "Poppins", "Lato", "Montserrat", "Open Sans", "Nunito", "Raleway", "Oswald", "Outfit"];
@@ -588,7 +592,10 @@
         const group = document.createElement('div');
         group.className = 'color-item';
         group.innerHTML = `
-          <label>${c.name}</label>
+          <label style="display: flex; align-items: center; gap: 6px; cursor: pointer;">
+            <input type="checkbox" class="color-checkbox" data-name="${c.name}" ${c.checked ? 'checked' : ''} style="cursor: pointer; width: 14px; height: 14px; accent-color: var(--accent);">
+            ${c.name}
+          </label>
           <div class="color-input-layout">
             <div class="color-swatch-wrapper" style="background-color: ${c.default}">
               <input type="color" value="${c.default}">
@@ -599,11 +606,18 @@
         const picker = group.querySelector('input[type="color"]');
         const text = group.querySelector('input[type="text"]');
         const preview = group.querySelector('.color-swatch-wrapper');
-        
+
+        let syncTimeout;
+        const debouncedSync = () => {
+          clearTimeout(syncTimeout);
+          syncTimeout = setTimeout(() => syncSystem(), 300);
+        };
+
         picker.addEventListener('input', (e) => {
           text.value = e.target.value.toUpperCase();
           preview.style.backgroundColor = e.target.value;
           colorValues[c.name] = e.target.value;
+          syncSystem();
         });
         text.addEventListener('input', (e) => {
           let val = e.target.value;
@@ -612,7 +626,11 @@
             picker.value = val;
             preview.style.backgroundColor = val;
             colorValues[c.name] = val;
+            debouncedSync();
           }
+        });
+        group.querySelector('.color-checkbox').addEventListener('change', () => {
+          syncSystem();
         });
         colorContainer.appendChild(group);
       });
@@ -670,18 +688,38 @@
       }
 
       // Event Listeners
-      generateBtn.onclick = () => {
-        const btnTextEl = generateBtn.querySelector('.btn-text');
-        if (btnTextEl) btnTextEl.textContent = "Generating...";
-        loader.style.display = "block";
-        generateBtn.disabled = true;
+      function syncSystem(showLoader = false) {
+        const selectedColors = {};
+        document.querySelectorAll('.color-checkbox:checked').forEach(cb => {
+          const name = cb.dataset.name;
+          selectedColors[name] = colorValues[name];
+        });
+
+        const includeNeutral = !!selectedColors["Neutral"];
+        const allCategories = colorDefinitions.map(c => c.name);
+
+        if (showLoader) {
+          const btnTextEl = generateBtn.querySelector('.btn-text');
+          if (btnTextEl) btnTextEl.textContent = "Generating...";
+          loader.style.display = "block";
+          generateBtn.disabled = true;
+        }
+
         parent.postMessage({
           pluginMessage: {
             type: 'generate-system',
-            colors: colorValues,
+            colors: selectedColors,
+            allCategories: allCategories,
+            includeNeutral: includeNeutral,
             font: fontInput.value.trim() || 'Inter'
           }
         }, '*');
+      }
+
+      // Event Listeners
+      generateBtn.onclick = () => {
+        if (Object.keys(colorValues).length === 0) return;
+        syncSystem(true);
       };
 
       fontInput.onfocus = () => {
