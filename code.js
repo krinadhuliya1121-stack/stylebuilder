@@ -18,6 +18,7 @@ async function sendFontData() {
 
 // Color Helper Functions
 function hexToRgb(hex) {
+    if (!hex || typeof hex !== 'string') return { r: 0, g: 0, b: 0 };
     let c = hex.substring(1);
     if (c.length === 3) c = c.split('').map(x => x + x).join('');
     let rgb = parseInt(c, 16);
@@ -193,16 +194,21 @@ async function runGenerator(colors, includeNeutral, font, allCategories) {
         try { await figma.loadFontAsync({ family: "Inter", style: w }); } catch (e) { }
     }
 
-    let fontSuccess = true;
+    const loadedWeights = [];
     for (const w of weights) {
         try {
             await figma.loadFontAsync({ family: font, style: w });
+            loadedWeights.push(w);
         } catch (e) {
-            fontSuccess = false;
+            // Fallback for this specific weight
+            try {
+                await figma.loadFontAsync({ family: font, style: "Regular" });
+                if (!loadedWeights.includes("Regular")) loadedWeights.push("Regular");
+            } catch (e2) {}
         }
     }
 
-    if (!fontSuccess) {
+    if (loadedWeights.length === 0) {
         font = "Inter";
     }
 
@@ -227,7 +233,13 @@ async function runGenerator(colors, includeNeutral, font, allCategories) {
             textStyle = figma.createTextStyle();
             textStyle.name = t.name;
         }
-        textStyle.fontName = { family: font, style: t.weight };
+        
+        let styleToUse = t.weight;
+        if (loadedWeights.indexOf(styleToUse) === -1) {
+            styleToUse = (loadedWeights.indexOf("Regular") !== -1) ? "Regular" : (loadedWeights[0] || "Regular");
+        }
+
+        textStyle.fontName = { family: font, style: styleToUse };
         textStyle.fontSize = t.size;
         textStyle.lineHeight = { unit: 'AUTO' };
         textStyle.letterSpacing = { value: 0, unit: 'PIXELS' };

@@ -7,16 +7,17 @@
   <title>Design System Generator AI</title>
   <style>
     :root {
-      --bg: #09090b;
-      --surface: #18181b;
-      --surface-hover: #27272a;
-      --border: #3f3f46;
-      --text: #f4f4f5;
-      --text-muted: #a1a1aa;
-      --accent: #3b82f6;
-      --accent-hover: #2563eb;
+      --bg: #F9FAFB;
+      --surface: #FFFFFF;
+      --surface-secondary: #F3F4F6;
+      --border: #E5E7EB;
+      --text: #111827;
+      --text-muted: #6B7280;
+      --accent: #4F46E5;
+      --accent-gradient: linear-gradient(135deg, #4F46E5 0%, #7C3AED 100%);
       --radius: 12px;
-      --ring: rgba(59, 130, 246, 0.5);
+      --radius-sm: 8px;
+      --shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
     }
 
     * {
@@ -26,30 +27,57 @@
     }
 
     body {
-      max-width: 420px;
-      /* add container feel */
-      margin: 0 auto;
-      padding: 20px;
+      background-color: var(--bg);
+      color: var(--text);
+      font-family: 'Inter', system-ui, -apple-system, sans-serif;
+      padding: 0;
+      margin: 0;
+    }
+
+    .main-container {
+      padding: 16px;
+      padding-bottom: 24px;
     }
 
     .header {
-      margin-bottom: 8px;
+      padding: 12px 16px;
+      border-bottom: 1px dashed var(--border);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      background: var(--surface);
     }
 
     .header h1 {
-      font-size: 20px;
-      font-weight: 600;
-      letter-spacing: -0.02em;
-      background: linear-gradient(135deg, #fff 0%, #a1a1aa 100%);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      margin-bottom: 4px;
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--text);
+      margin: 0;
     }
 
-    .header p {
-      font-size: 13px;
-      color: var(--text-muted);
-      line-height: 1.4;
+    .section-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 12px;
+      margin-top: 20px;
+    }
+
+    .section-title {
+      font-size: 15px;
+      font-weight: 700;
+      color: #374151;
+    }
+
+    .step-badge {
+      background: #F3F4F6;
+      color: #9CA3AF;
+      font-size: 10px;
+      font-weight: 700;
+      padding: 4px 8px;
+      border-radius: 6px;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
     }
 
     .input-group {
@@ -62,44 +90,30 @@
       font-size: 12px;
       font-weight: 500;
       color: var(--text-muted);
-      text-transform: uppercase;
       letter-spacing: 0.05em;
     }
 
-    .color-item {
+    .color-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 8px;
       display: flex;
       flex-direction: column;
-      gap: 6px;
-    }
-
-    .color-item label {
-      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-      font-size: 11px;
-      font-weight: 600;
-      color: var(--text-muted);
-      letter-spacing: 0.05em;
-      text-transform: uppercase;
-    }
-
-    .color-input-layout {
-      display: flex;
-      align-items: center;
       gap: 8px;
+      box-shadow: var(--shadow);
+    }
+
+    .color-preview-box {
       width: 100%;
-    }
-
-    .color-swatch-wrapper {
-      width: 32px;
-      height: 32px;
-      border-radius: 6px;
-      border: 1px solid rgba(255, 255, 255, 0.1);
-      flex-shrink: 0;
+      height: 40px;
+      border-radius: 8px;
       position: relative;
-      overflow: hidden;
       cursor: pointer;
+      overflow: hidden;
     }
 
-    .color-swatch-wrapper input[type="color"] {
+    .color-preview-box input[type="color"] {
       position: absolute;
       top: -20px;
       left: -20px;
@@ -109,24 +123,80 @@
       opacity: 0;
     }
 
-    .color-hex-input {
-      flex: 1;
-      background-color: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: 6px;
-      color: var(--text);
-      font-size: 13px;
-      font-family: 'Inter', monospace;
-      padding: 0 10px;
-      height: 32px;
-      outline: none;
-      width: 100%;
-      transition: all 0.2s ease;
+    .selection-check {
+      position: absolute;
+      top: 6px;
+      right: 6px;
+      width: 14px;
+      height: 14px;
+      background: rgba(255, 255, 255, 0.2);
+      border: 1.5px solid rgba(255, 255, 255, 0.6);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 2;
     }
 
-    .color-hex-input:focus {
-      border-color: var(--accent);
-      box-shadow: 0 0 0 2px var(--ring);
+    .color-card.active .selection-check {
+      background: white;
+      border-color: white;
+    }
+
+    .color-card.active .selection-check::after {
+      content: "";
+      width: 6px;
+      height: 4px;
+      border-left: 1.5px solid var(--accent);
+      border-bottom: 1.5px solid var(--accent);
+      transform: rotate(-45deg) translate(1px, -1px);
+    }
+
+    .color-info {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .color-label-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .color-name {
+      font-size: 9px;
+      font-weight: 700;
+      color: #9CA3AF;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .hex-input-wrapper {
+      position: relative;
+      display: flex;
+      align-items: center;
+      background: var(--surface-secondary);
+      border-radius: 6px;
+      padding: 0 8px;
+      height: 28px;
+    }
+
+    .hex-input-wrapper input {
+      border: none;
+      background: transparent;
+      font-size: 11px;
+      font-weight: 600;
+      color: #374151;
+      width: 100%;
+      outline: none;
+      font-family: 'Inter', monospace;
+    }
+
+    .copy-icon {
+      color: #747779;
+      opacity: 0.6;
+      cursor: pointer;
     }
 
     select {
@@ -143,36 +213,46 @@
       background-color: var(--bg);
     }
 
-    button {
-      background-color: var(--accent);
+    .footer {
+      background: #F3F4F6;
+      padding: 24px 16px;
+      margin: 0 -16px -24px -16px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 12px;
+      margin-top: 32px;
+    }
+
+    #generate-btn {
+      background: var(--accent-gradient);
       color: white;
       border: none;
-      padding: 12px 16px;
-      font-weight: 600;
+      padding: 14px 20px;
+      font-weight: 700;
       font-size: 14px;
-      border-radius: 8px;
+      border-radius: 10px;
       cursor: pointer;
-      font-family: inherit;
       transition: all 0.2s ease;
       display: flex;
       align-items: center;
       justify-content: center;
-      gap: 8px;
-      margin-top: 40px;
-      box-shadow: 0 4px 12px rgba(59, 130, 246, 0.25);
+      gap: 10px;
       width: 100%;
-
+      box-shadow: 0 4px 14px 0 rgba(79, 70, 229, 0.39);
     }
 
-    button:hover {
-      background-color: var(--accent-hover);
+    #generate-btn:hover {
       transform: translateY(-1px);
-      box-shadow: 0 6px 16px rgba(59, 130, 246, 0.35);
+      box-shadow: 0 6px 20px rgba(79, 70, 229, 0.23);
     }
 
-    button:active {
-      transform: translateY(1px);
-      box-shadow: 0 2px 8px rgba(59, 130, 246, 0.25);
+    .version-tag {
+      font-size: 9px;
+      font-weight: 700;
+      color: #9CA3AF;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
     }
 
     button:disabled {
@@ -195,32 +275,29 @@
       position: relative;
       background-color: var(--surface);
       border: 1px solid var(--border);
-      border-radius: 8px;
+      border-radius: 10px;
       transition: all 0.2s ease;
-      height: 40px;
+      height: 44px;
       display: flex;
       align-items: center;
-      overflow: hidden;
+      padding: 0 12px;
+      box-shadow: var(--shadow);
     }
 
     .font-search-wrapper:focus-within {
-      border-color: var(--accent);
-      box-shadow: 0 0 0 2px var(--ring);
-      background-color: var(--surface);
+      border-color: #D1D5DB;
     }
 
     .font-search-wrapper input[type="text"] {
       width: 100%;
       border: none;
       background: transparent;
-      padding: 10px 40px 10px 36px;
-      box-shadow: none;
-      margin: 0;
+      padding: 0 24px 0 32px;
       color: var(--text);
-      font-size: 14px;
+      font-size: 13px;
+      font-weight: 500;
       outline: none;
-      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-      line-height: 1.4;
+      font-family: inherit;
     }
 
     .font-search-wrapper input[type="text"]:focus {
@@ -405,7 +482,7 @@
       grid-template-columns: repeat(2, 1fr);
       row-gap: 30px;
       column-gap: 30px;
-      margin-top: 60px;
+      margin-top: 0;
     }
 
     .font-filter-wrapper {
@@ -455,28 +532,28 @@
       z-index: 1000;
       display: none;
       padding: 6px 0;
-    }
-
-    .font-filter-dropdown.show {
-      display: block;
-    }
   </style>
 </head>
 
-<body>
+
+
+<div class="main-container">
+  <div class="section-header">
+    <h2 class="section-title">Typography Foundation</h2>
+    <span class="step-badge">Step 01</span>
+  </div>
 
   <div class="input-group" style="position: relative; margin-bottom: 12px; z-index: 10;">
-    <label for="font-family">Font Family</label>
+    <label for="font-family" style="margin-bottom: 4px;">Font Family</label>
     <div class="font-search-wrapper" id="font-search-wrapper">
-      <svg class="search-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-        stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <svg class="search-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#9CA3AF" stroke-width="2"
+        stroke-linecap="round" stroke-linejoin="round">
         <circle cx="11" cy="11" r="8"></circle>
         <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
       </svg>
-      <input type="text" id="font-family" value="Inter" placeholder="Search fonts..." spellcheck="false"
-        autocomplete="off">
-      <svg id="clear-search" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-        stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <input type="text" id="font-family" value="" placeholder="Search Fonts ..." spellcheck="false" autocomplete="off">
+      <svg id="clear-search" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#9CA3AF" stroke-width="2"
+        stroke-linecap="round" stroke-linejoin="round" style="display: none;">
         <line x1="18" y1="6" x2="6" y2="18"></line>
         <line x1="6" y1="6" x2="18" y2="18"></line>
       </svg>
@@ -487,300 +564,269 @@
     </div>
   </div>
 
-  <div class="input-group" style="position: relative; margin-bottom: 12px; z-index: 9;">
-    <label>Font Filter</label>
-    <div class="font-filter-wrapper" id="font-filter-wrapper">
-      <div class="font-filter-selected" id="font-filter-selected">
-        <span id="filter-display">All fonts</span>
-        <svg class="dropdown-arrow" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-          stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <polyline points="6 9 12 15 18 9"></polyline>
-        </svg>
-      </div>
-    </div>
-
-    <div id="font-filter-dropdown" class="font-filter-dropdown">
-      <div class="menu-item active">
-        <svg width="12" height="12" viewBox="0 0 14 14" fill="none" class="check-icon">
-          <path d="M11.5 3.5L5.25 10.5L2.5 7.5" stroke="white" stroke-width="2" stroke-linecap="round"
-            stroke-linejoin="round" />
-        </svg>
-        All fonts
-      </div>
-      <div class="menu-item">
-        <svg width="12" height="12" viewBox="0 0 14 14" fill="none" class="check-icon">
-          <path d="M11.5 3.5L5.25 10.5L2.5 7.5" stroke="white" stroke-width="2" stroke-linecap="round"
-            stroke-linejoin="round" />
-        </svg>In this file
-      </div>
-      <div class="menu-divider"></div>
-      <div class="menu-item">
-        <svg width="12" height="12" viewBox="0 0 14 14" fill="none" class="check-icon">
-          <path d="M11.5 3.5L5.25 10.5L2.5 7.5" stroke="white" stroke-width="2" stroke-linecap="round"
-            stroke-linejoin="round" />
-        </svg>Popular fonts
-      </div>
-      <div class="menu-item">
-        <svg width="12" height="12" viewBox="0 0 14 14" fill="none" class="check-icon">
-          <path d="M11.5 3.5L5.25 10.5L2.5 7.5" stroke="white" stroke-width="2" stroke-linecap="round"
-            stroke-linejoin="round" />
-        </svg>Google fonts
-      </div>
-      <div class="menu-item">
-        <svg width="12" height="12" viewBox="0 0 14 14" fill="none" class="check-icon">
-          <path d="M11.5 3.5L5.25 10.5L2.5 7.5" stroke="white" stroke-width="2" stroke-linecap="round"
-            stroke-linejoin="round" />
-        </svg>Variable fonts
-      </div>
-      <div class="menu-divider"></div>
-      <div class="menu-item">
-        <svg width="12" height="12" viewBox="0 0 14 14" fill="none" class="check-icon">
-          <path d="M11.5 3.5L5.25 10.5L2.5 7.5" stroke="white" stroke-width="2" stroke-linecap="round"
-            stroke-linejoin="round" />
-        </svg>Installed by you
-      </div>
-    </div>
+  <div class="section-header">
+    <h2 class="section-title">Color Protocol</h2>
+    <span class="step-badge">Step 02</span>
   </div>
 
-  <div class="section-title"
-    style="font-size: 11px; font-weight: 700; color: var(--text-muted); text-transform: uppercase;"></div>
   <div id="color-inputs" style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 4px;">
     <!-- Color inputs will be injected here -->
   </div>
 
 
-  <button id="generate-btn">
-    <span class="btn-text">Create System</span>
-    <div class="loader" id="loader"></div>
-  </button>
+</div>
 
-  <script>
-    window.addEventListener('DOMContentLoaded', () => {
-      // Global Elements
-      const generateBtn = document.getElementById('generate-btn');
-      const fontInput = document.getElementById('font-family');
-      const loader = document.getElementById('loader');
-      const fontDropdown = document.getElementById('font-dropdown');
-      const fontListContainer = document.getElementById('font-list-container');
-      const clearSearch = document.getElementById('clear-search');
-      const fontFilterWrapper = document.getElementById('font-filter-wrapper');
-      const fontFilterDropdown = document.getElementById('font-filter-dropdown');
-      const filterDisplay = document.getElementById('filter-display');
-      const fontFilterSelected = document.getElementById('font-filter-selected');
-      const colorContainer = document.getElementById('color-inputs');
+<script>
+  window.addEventListener('DOMContentLoaded', () => {
+    // Global Elements
+    const generateBtn = document.getElementById('generate-btn');
+    const fontInput = document.getElementById('font-family');
+    const loader = document.getElementById('loader');
+    const fontDropdown = document.getElementById('font-dropdown');
+    const fontListContainer = document.getElementById('font-list-container');
+    const clearSearch = document.getElementById('clear-search');
+    const colorContainer = document.getElementById('color-inputs');
 
-      // State
-      const colorDefinitions = [
-        { name: "Primary", default: "#3b82f6", checked: true },
-        { name: "Secondary", default: "#8b5cf6", checked: false },
-        { name: "Tertiary", default: "#ec4899", checked: false },
-        { name: "Success", default: "#10b981", checked: false },
-        { name: "Info", default: "#06b6d4", checked: false },
-        { name: "Warning", default: "#f59e0b", checked: false },
-        { name: "Danger", default: "#ef4444", checked: false },
-        { name: "Gray", default: "#6b7280", checked: true },
-        // { name: "Others", default: "#14b8a6", checked: false },
-        { name: "Neutral", default: "#000000", checked: true },
-      ];
-      const colorValues = {};
-      let availableFonts = ["Inter", "Roboto", "Poppins", "Lato", "Montserrat", "Open Sans", "Nunito", "Raleway", "Oswald", "Outfit"];
-      const loadedFonts = new Set(["Inter"]);
+    // State
+    const colorDefinitions = [
+      { name: "Primary", default: "#3b82f6", checked: true },
+      { name: "Secondary", default: "#8b5cf6", checked: false },
+      { name: "Tertiary", default: "#ec4899", checked: false },
+      { name: "Success", default: "#10b981", checked: false },
+      { name: "Info", default: "#06b6d4", checked: false },
+      { name: "Warning", default: "#f59e0b", checked: false },
+      { name: "Danger", default: "#ef4444", checked: false },
+      { name: "Gray", default: "#6b7280", checked: true },
+      // { name: "Others", default: "#14b8a6", checked: false },
+      { name: "Neutral", default: "#000000", checked: true },
+    ];
+    const colorValues = {};
+    let availableFonts = ["Inter", "Roboto", "Poppins", "Lato", "Montserrat", "Open Sans", "Nunito", "Raleway", "Oswald", "Outfit"];
+    const loadedFonts = new Set(["Inter"]);
 
-      // Initialize Color Inputs
-      colorDefinitions.forEach(c => {
-        colorValues[c.name] = c.default;
-        const group = document.createElement('div');
-        group.className = 'color-item';
-        group.innerHTML = `
-          <label style="display: flex; align-items: center; gap: 6px; cursor: pointer;">
-            <input type="checkbox" class="color-checkbox" data-name="${c.name}" ${c.checked ? 'checked' : ''} style="cursor: pointer; width: 14px; height: 14px; accent-color: var(--accent);">
-            ${c.name}
-          </label>
-          <div class="color-input-layout">
-            <div class="color-swatch-wrapper" style="background-color: ${c.default}">
-              <input type="color" value="${c.default}">
+    // Initialize Color Inputs
+    colorDefinitions.forEach(c => {
+      colorValues[c.name] = c.default;
+      const group = document.createElement('div');
+      group.className = 'color-card' + (c.checked ? ' active' : '');
+      group.innerHTML = `
+          <div class="color-preview-box" style="background-color: ${c.default}">
+            <input type="color" value="${c.default}">
+            <div class="selection-check"></div>
+          </div>
+          <div class="color-info">
+            <div class="color-label-row">
+              <span class="color-name">${c.name}</span>
+              <input type="checkbox" class="color-checkbox" data-name="${c.name}" style="display: none;" ${c.checked ? 'checked' : ''}>
             </div>
-            <input type="text" class="color-hex-input" value="${c.default}" spellcheck="false" maxlength="7">
+            <div class="hex-input-wrapper">
+              <input type="text" value="${c.default.toUpperCase()}" spellcheck="false">
+              <svg class="copy-icon" width="10" height="12" viewBox="0 0 10 12" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M3.5 9.33333C3.17917 9.33333 2.90451 9.2191 2.67604 8.99063C2.44757 8.76215 2.33333 8.4875 2.33333 8.16667V1.16667C2.33333 0.845833 2.44757 0.571181 2.67604 0.342708C2.90451 0.114236 3.17917 0 3.5 0H8.75C9.07083 0 9.34549 0.114236 9.57396 0.342708C9.80243 0.571181 9.91667 0.845833 9.91667 1.16667V8.16667C9.91667 8.4875 9.80243 8.76215 9.57396 8.99063C9.34549 9.2191 9.07083 9.33333 8.75 9.33333H3.5ZM3.5 8.16667H8.75V1.16667H3.5V8.16667ZM1.16667 11.6667C0.845833 11.6667 0.571181 11.5524 0.342708 11.324C0.114236 11.0955 0 10.8208 0 10.5V2.33333H1.16667V10.5H7.58333V11.6667H1.16667ZM3.5 8.16667V1.16667V8.16667Z" fill="#747779"/>
+              </svg>
+            </div>
           </div>
         `;
-        const picker = group.querySelector('input[type="color"]');
-        const text = group.querySelector('input[type="text"]');
-        const preview = group.querySelector('.color-swatch-wrapper');
+      const picker = group.querySelector('input[type="color"]');
+      const text = group.querySelector('input[type="text"]');
+      const preview = group.querySelector('.color-preview-box');
+      const checkbox = group.querySelector('.color-checkbox');
 
-        let syncTimeout;
-        const debouncedSync = () => {
-          clearTimeout(syncTimeout);
-          syncTimeout = setTimeout(() => syncSystem(), 300);
-        };
+      let syncTimeout;
+      const debouncedSync = () => {
+        clearTimeout(syncTimeout);
+        syncTimeout = setTimeout(() => syncSystem(), 300);
+      };
 
-        picker.addEventListener('input', (e) => {
-          text.value = e.target.value.toUpperCase();
-          preview.style.backgroundColor = e.target.value;
-          colorValues[c.name] = e.target.value;
-          syncSystem();
-        });
-        text.addEventListener('input', (e) => {
-          let val = e.target.value;
-          if (!val.startsWith('#')) val = '#' + val;
-          if (/^#[0-9A-F]{6}$/i.test(val)) {
-            picker.value = val;
-            preview.style.backgroundColor = val;
-            colorValues[c.name] = val;
-            debouncedSync();
-          }
-        });
-        group.querySelector('.color-checkbox').addEventListener('change', () => {
-          syncSystem();
-        });
-        colorContainer.appendChild(group);
+      preview.onclick = () => {
+        checkbox.checked = !checkbox.checked;
+        group.classList.toggle('active', checkbox.checked);
+        syncSystem();
+      };
+
+      picker.addEventListener('input', (e) => {
+        text.value = e.target.value.toUpperCase();
+        preview.style.backgroundColor = e.target.value;
+        colorValues[c.name] = e.target.value;
+        checkbox.checked = true;
+        group.classList.add('active');
+        syncSystem();
+      });
+      text.addEventListener('input', (e) => {
+        let val = e.target.value;
+        if (!val.startsWith('#')) val = '#' + val;
+        if (/^#[0-9A-F]{6}$/i.test(val)) {
+          picker.value = val;
+          preview.style.backgroundColor = val;
+          colorValues[c.name] = val;
+          checkbox.checked = true;
+          group.classList.add('active');
+          debouncedSync();
+        }
       });
 
-      // Font Dropdown Logic
-      const observer = new IntersectionObserver((entries) => {
-        entries.forEach(entry => {
-          if (entry.isIntersecting) {
-            const fontName = entry.target.dataset.font;
-            if (fontName && !loadedFonts.has(fontName)) {
-              loadedFonts.add(fontName);
-              const link = document.createElement('link');
-              link.rel = 'stylesheet';
-              link.href = `https://fonts.googleapis.com/css2?family=${fontName.replace(/ /g, '+')}&text=${encodeURIComponent(fontName)}`;
-              document.head.appendChild(link);
-            }
-            observer.unobserve(entry.target);
+      const copyIcon = group.querySelector('.copy-icon');
+      copyIcon.onclick = (e) => {
+        e.stopPropagation();
+        const input = document.createElement('input');
+        input.value = text.value;
+        document.body.appendChild(input);
+        input.select();
+        document.execCommand('copy');
+        document.body.removeChild(input);
+
+        // Feedback
+        copyIcon.style.color = '#10b981';
+        setTimeout(() => copyIcon.style.color = '#9CA3AF', 1000);
+      };
+
+      group.querySelector('.color-checkbox').addEventListener('change', () => {
+        syncSystem();
+      });
+      colorContainer.appendChild(group);
+    });
+
+    // Font Dropdown Logic
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          const fontName = entry.target.dataset.font;
+          if (fontName && !loadedFonts.has(fontName)) {
+            loadedFonts.add(fontName);
+            const link = document.createElement('link');
+            link.rel = 'stylesheet';
+            link.href = `https://fonts.googleapis.com/css2?family=${fontName.replace(/ /g, '+')}&text=${encodeURIComponent(fontName)}`;
+            document.head.appendChild(link);
           }
-        });
-      }, { root: fontDropdown, rootMargin: '100px' });
-
-      function renderDropdown(query = '') {
-        observer.disconnect();
-        fontListContainer.innerHTML = '';
-        const q = query.trim().toLowerCase();
-        const filtered = availableFonts.filter(f => f.toLowerCase().includes(q)).slice(0, 800);
-        const currentFont = fontInput.value.trim().toLowerCase();
-
-        if (filtered.length === 0) {
-          fontListContainer.innerHTML = '<div class="font-option" style="opacity: 0.5; cursor: default;">No matching fonts</div>';
-        } else {
-          filtered.forEach(fontName => {
-            const opt = document.createElement('div');
-            opt.className = 'font-option';
-            if (fontName.toLowerCase() === currentFont) opt.classList.add('selected');
-            opt.textContent = fontName;
-            opt.dataset.font = fontName;
-            opt.style.fontFamily = `"${fontName}", sans-serif`;
-            opt.onclick = (e) => {
-              e.stopPropagation();
-              fontInput.value = fontName;
-              clearSearch.style.display = 'block';
-              closeAll();
-            };
-            fontListContainer.appendChild(opt);
-            observer.observe(opt);
-          });
+          observer.unobserve(entry.target);
         }
-        fontDropdown.classList.add('show');
-      }
+      });
+    }, { root: fontDropdown, rootMargin: '100px' });
 
-      function closeAll() {
-        fontDropdown.classList.remove('show');
-        fontFilterDropdown.classList.remove('show');
-      }
+    function renderDropdown(query = '') {
+      observer.disconnect();
+      fontListContainer.innerHTML = '';
+      const q = query.trim().toLowerCase();
+      const filtered = availableFonts.filter(f => f.toLowerCase().includes(q));
+      const currentFont = fontInput.value.trim().toLowerCase();
 
-      // Event Listeners
-      function syncSystem(showLoader = false) {
-        const selectedColors = {};
-        document.querySelectorAll('.color-checkbox:checked').forEach(cb => {
-          const name = cb.dataset.name;
-          selectedColors[name] = colorValues[name];
+      if (filtered.length === 0) {
+        fontListContainer.innerHTML = '<div class="font-option" style="opacity: 0.5; cursor: default;">No matching fonts</div>';
+      } else {
+        filtered.forEach(fontName => {
+          const opt = document.createElement('div');
+          opt.className = 'font-option';
+          if (fontName.toLowerCase() === currentFont) opt.classList.add('selected');
+          opt.textContent = fontName;
+          opt.dataset.font = fontName;
+          opt.style.fontFamily = `"${fontName}", sans-serif`;
+          opt.onclick = (e) => {
+            e.stopPropagation();
+            fontInput.value = fontName;
+            clearSearch.style.display = 'block';
+            closeAll();
+            syncSystem();
+          };
+          fontListContainer.appendChild(opt);
+          observer.observe(opt);
         });
+      }
+      fontDropdown.classList.add('show');
+    }
 
-        const includeNeutral = !!selectedColors["Neutral"];
-        const allCategories = colorDefinitions.map(c => c.name);
+    function closeAll() {
+      fontDropdown.classList.remove('show');
+    }
 
-        if (showLoader) {
-          const btnTextEl = generateBtn.querySelector('.btn-text');
-          if (btnTextEl) btnTextEl.textContent = "Generating...";
-          loader.style.display = "block";
-          generateBtn.disabled = true;
-        }
+    // Event Listeners
+    function syncSystem(showLoader = false) {
+      const selectedColors = {};
+      document.querySelectorAll('.color-checkbox:checked').forEach(cb => {
+        const name = cb.dataset.name;
+        selectedColors[name] = colorValues[name];
+      });
 
-        parent.postMessage({
-          pluginMessage: {
-            type: 'generate-system',
-            colors: selectedColors,
-            allCategories: allCategories,
-            includeNeutral: includeNeutral,
-            font: fontInput.value.trim() || 'Inter'
-          }
-        }, '*');
+      const includeNeutral = !!selectedColors["Neutral"];
+      const allCategories = colorDefinitions.map(c => c.name);
+
+      if (showLoader) {
+        const btnTextEl = generateBtn.querySelector('.btn-text');
+        if (btnTextEl) btnTextEl.textContent = "Generating...";
+        loader.style.display = "block";
+        generateBtn.disabled = true;
       }
 
-      // Event Listeners
+      parent.postMessage({
+        pluginMessage: {
+          type: 'generate-system',
+          colors: selectedColors,
+          allCategories: allCategories,
+          includeNeutral: includeNeutral,
+          font: fontInput.value.trim() || 'Inter'
+        }
+      }, '*');
+    }
+
+    // Event Listeners
+    if (generateBtn) {
       generateBtn.onclick = () => {
         if (Object.keys(colorValues).length === 0) return;
         syncSystem(true);
       };
+    }
 
-      fontInput.onfocus = () => {
-        clearSearch.style.display = fontInput.value ? 'block' : 'none';
-        renderDropdown(fontInput.value);
-      };
-      fontInput.oninput = (e) => {
-        renderDropdown(e.target.value);
-        clearSearch.style.display = e.target.value ? 'block' : 'none';
-      };
-      clearSearch.onclick = (e) => {
-        e.stopPropagation();
-        fontInput.value = '';
-        clearSearch.style.display = 'none';
-        renderDropdown('');
-        fontInput.focus();
-      };
+    fontInput.onfocus = () => {
+      clearSearch.style.display = fontInput.value ? 'block' : 'none';
+      renderDropdown(fontInput.value);
+    };
+    fontInput.oninput = (e) => {
+      renderDropdown(e.target.value);
+      clearSearch.style.display = e.target.value ? 'block' : 'none';
 
-      fontFilterSelected.onclick = (e) => {
-        e.stopPropagation();
-        const isOpen = fontFilterDropdown.classList.contains('show');
+      // Real-time sync when typing
+      const val = e.target.value.trim();
+      if (val.length > 2) {
+        debouncedSync();
+      }
+    };
+    clearSearch.onclick = (e) => {
+      e.stopPropagation();
+      fontInput.value = '';
+      clearSearch.style.display = 'none';
+      renderDropdown('');
+      fontInput.focus();
+      syncSystem(); // Sync back to default (Inter)
+    };
+
+    document.addEventListener('click', (e) => {
+      const isInsideFontGroup = e.target.closest('.input-group');
+      if (!isInsideFontGroup) {
         closeAll();
-        if (!isOpen) fontFilterDropdown.classList.add('show');
-      };
-
-      document.querySelectorAll('#font-filter-dropdown .menu-item').forEach(item => {
-        item.onclick = (e) => {
-          e.stopPropagation();
-          document.querySelectorAll('#font-filter-dropdown .menu-item').forEach(i => i.classList.remove('active'));
-          item.classList.add('active');
-          filterDisplay.textContent = item.textContent.trim();
-          closeAll();
-        };
-      });
-
-      document.onclick = (e) => {
-        if (!e.target.closest('.input-group')) closeAll();
-      };
-
-      // Messaging
-      window.onmessage = (event) => {
-        const msg = event.data.pluginMessage;
-        if (!msg) return;
-        if (msg.type === 'font-data') {
-          availableFonts = Object.keys(msg.fontMap).sort();
-        } else if (msg.type === 'done' || msg.type === 'error') {
-          if (msg.type === 'error') alert(msg.message);
-          const btnTextEl = generateBtn.querySelector('.btn-text');
-          if (btnTextEl) btnTextEl.textContent = msg.type === 'done' ? "System Generated!" : "Create System";
-          loader.style.display = "none";
-          setTimeout(() => {
-            if (btnTextEl) btnTextEl.textContent = "Create System";
-            generateBtn.disabled = false;
-          }, 2000);
-        }
-      };
-
-      // Signal UI is ready to receive data
-      parent.postMessage({ pluginMessage: { type: 'ui-ready' } }, '*');
+      }
     });
-  </script>
+
+    // Messaging
+    window.onmessage = (event) => {
+      const msg = event.data.pluginMessage;
+      if (!msg) return;
+      if (msg.type === 'font-data') {
+        availableFonts = Object.keys(msg.fontMap).sort();
+      } else if (msg.type === 'done' || msg.type === 'error') {
+        if (msg.type === 'error') alert(msg.message);
+        const btnTextEl = generateBtn.querySelector('.btn-text');
+        if (btnTextEl) btnTextEl.textContent = msg.type === 'done' ? "System Generated!" : "Create System";
+        loader.style.display = "none";
+        setTimeout(() => {
+          if (btnTextEl) btnTextEl.textContent = "Create System";
+          generateBtn.disabled = false;
+        }, 2000);
+      }
+    };
+
+    // Signal UI is ready to receive data
+    parent.postMessage({ pluginMessage: { type: 'ui-ready' } }, '*');
+  });
+</script>
 </body>
 
 </html>
