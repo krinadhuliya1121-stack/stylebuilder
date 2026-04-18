@@ -1,7 +1,7 @@
 {
   "name": "figma-plugin-design-system",
   "version": "1.0.0",
-  "description": "Design System Generator AI",
+  "description": "AutoStyler",
   "scripts": {
     "build": "tsc -p tsconfig.json",
     "watch": "tsc -p tsconfig.json --watch"
